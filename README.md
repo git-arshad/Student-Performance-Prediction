@@ -1,68 +1,73 @@
-# Student Performance Prediction Using Decision Trees
+# Intelligent Student Performance Prediction System (P-8)
 
-This repository contains a mini machine learning project developed for the **CCS4340** module. The project focuses on predicting student academic performance using the **Decision Tree Classification** algorithm.
+## Problem statement and objective
 
-## 📌 Project Overview
+This project gives academic staff a transparent local tool for estimating student performance and discussing practical improvement actions. It uses a Decision Tree to predict **Excellent**, **Good**, **Average**, or **Poor** from attendance, assignment marks, internal marks, weekly study hours, and previous GPA.
 
-Educational institutions aim to identify students who are at risk of academic failure early in order to provide academic support and improve student success.
+## Features
 
-In this project, a Decision Tree classification model is built to predict whether a student will **Pass** or **Fail** based on academic and behavioral factors.
+- Validated interactive Streamlit inputs and four-class Decision Tree prediction.
+- Deterministic areas-to-improve and suggestions, separate from ML prediction.
+- What-if analysis, class distribution, feature importance, and held-out metrics.
+- Saved model bundle at `models/decision_tree.pkl`.
 
-## 🎯 Project Objectives
+## Dataset and four-class target
 
-* Build and evaluate a Decision Tree classification model
-* Predict student performance using educational data
-* Understand how Decision Trees work in classification problems
-* Practice machine learning workflow:
+The 200-record source is `data/Student_Performance.csv`. The source field `Midterm_Marks` is renamed to **Internal Marks** throughout the app; no records are needlessly discarded. Loading validates required columns, numeric types, ranges, missing values, and duplicates.
 
-  * Data preprocessing
-  * Data visualization
-  * Model training
-  * Model evaluation
+The source only contains a Pass/Fail result. Therefore the four labels are transparent **project-defined proxy categories**, not supplied ground truth. `src.preprocessing.add_performance_target` calculates this index:
 
-## 📊 Dataset Features
+`0.25 × internal + 0.20 × assignment + 0.15 × attendance + 0.15 × min(study hours, 20)/20×100 + 0.25 × GPA-normalised + historical outcome adjustment`
 
-| Feature               | Description                   |
-| --------------------- | ----------------------------- |
-| Attendance_Percentage | Student attendance percentage |
-| Midterm_Marks         | Midterm exam marks (0–100)    |
-| Assignment_Score      | Assignment marks (0–100)      |
-| Study_Hours_Per_Week  | Average study hours per week  |
-| Previous_GPA          | GPA from previous semester    |
-| Final_Result          | Target variable (Pass / Fail) |
+The historical Pass/Fail value provides only a small adjustment (+4 / -6) and is never a model feature. Fixed bands are Poor `<45`, Average `45–<60`, Good `60–<75`, Excellent `≥75`. This is not a renaming of Pass/Fail; it is reproducible and retains a modest historical signal while requiring the classifier to learn from the five available student inputs. These proxy categories should be validated against institutional outcomes before any real use.
 
-## 🛠 Technologies Used
+## Model, preprocessing, and evaluation
 
-* Python
-* Jupyter Notebook
-* Pandas
-* NumPy
-* Matplotlib
-* Seaborn
-* Scikit-learn
+`sklearn.tree.DecisionTreeClassifier` is the only prediction model. Training uses a 75/25 stratified held-out split (`random_state=42`), `max_depth=5`, `min_samples_leaf=2`, and balanced class weights. An unrestricted tree is included only as a small overfitting comparison. Scaling is not used because Decision Trees split using thresholds and do not need feature scaling.
 
-## 📂 Repository Contents
+Training dynamically prints the final class distribution and held-out accuracy, weighted precision, recall, F1-score, classification report, confusion matrix, and feature importances. Weighted multiclass averages are used because classes are not exactly equally sized. No metric values are hard-coded.
 
-* `Student_Performance_DecisionTree.ipynb` — Main notebook file
-* `README.md` — Project documentation
+## Recommendation system
 
-## 🤖 Machine Learning Algorithm
+`src/recommendations.py` is conceptually separate from the classifier. It checks actual inputs against clear guidance thresholds: attendance 75%, assignment/internal marks 60, study hours 8/week, and GPA 2.8/4. It returns every applicable weak area and suggestion, without random content, APIs, or guarantees.
 
-This project uses the **Decision Tree Classification** algorithm.
-Decision Trees split the dataset into branches based on feature importance to classify whether a student will pass or fail.
+## Project structure
 
-## ▶️ How to Run
+```text
+├── app.py
+├── data/Student_Performance.csv
+├── models/decision_tree.pkl
+├── notebooks/CIT_23_02_0162_Lab04_DecisionTree_.ipynb
+├── src/ (preprocessing, train, evaluate, predict, recommendations)
+├── requirements.txt
+└── README.md
+```
 
-1. Install Python and Jupyter Notebook
-2. Install required libraries:
+## Installation and use
 
-   ```bash
-   pip install pandas numpy matplotlib seaborn scikit-learn
-   ```
-3. Open the notebook file
-4. Run all cells sequentially
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m src.train
+streamlit run app.py
+```
 
-## 📈 Expected Outcome
+Open the matching experiment notebook with:
 
-The model predicts student academic performance and helps identify students who may require additional academic support.
+```powershell
+python -m jupyter notebook notebooks/CIT_23_02_0162_Lab04_DecisionTree_.ipynb
+```
 
+## Limitations
+
+The dataset is small and the labels are project-defined proxies, so this is demonstration decision support, not a sole basis for high-stakes student decisions.
+
+## Team contribution
+
+| Member | Student ID | Contribution |
+| --- | --- | --- |
+| Team member 1 |  |  |
+| Team member 2 |  |  |
+| Team member 3 |  |  |
+| Team member 4 |  |  |
